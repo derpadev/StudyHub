@@ -5,6 +5,7 @@ import { supabase } from "../supabase-client";
 interface AuthContextType {
   user: User | null;
   signInWithGitHub: () => void;
+  signInWithDiscord: () => void;
   signOut: () => void;
 }
 
@@ -31,12 +32,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.signInWithOAuth({ provider: "github" });
   };
 
+  const signInWithDiscord = () => {
+    supabase.auth.signInWithOAuth({ provider: "discord" });
+  };
+
   const signOut = () => {
     supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, signInWithGitHub, signOut }}>
+    <AuthContext.Provider value={{ user, signInWithGitHub, signInWithDiscord, signOut }}>
       {children}
     </AuthContext.Provider>
   );

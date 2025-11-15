@@ -1,24 +1,30 @@
 import { useState, type ChangeEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "../supabase-client";
+import { useAuth } from "../context/AuthContext";
 
 interface PostInput {
   title: string;
   content: string;
+  avatar_url?: string | null;
 }
 const createPost = async (post: PostInput, imageFile: File) => {
+  // create unique file path
   const filePath = `${post.title}-${Date.now()}-${imageFile.name}`;
 
+  // upload to supabase
   const { error: uploadError } = await supabase.storage
     .from("post-images")
     .upload(filePath, imageFile);
 
   if (uploadError) throw new Error(uploadError.message);
 
+  // get public url from supabase/store to publicURLData
   const { data: publicURLData } = supabase.storage
     .from("post-images")
     .getPublicUrl(filePath);
 
+  // Insert post and image into posts table
   const { data, error } = await supabase
     .from("posts")
     .insert({ ...post, image_url: publicURLData.publicUrl });
@@ -33,6 +39,8 @@ export const CreatePost = () => {
   const [content, setContent] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const { user } = useAuth();
+
   const { mutate, isPending, isError } = useMutation({
     mutationFn: (data: { post: PostInput; imageFile: File }) => {
       return createPost(data.post, data.imageFile);
@@ -42,7 +50,14 @@ export const CreatePost = () => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedFile) return;
-    mutate({ post: { title, content }, imageFile: selectedFile });
+    mutate({
+      post: {
+        title,
+        content,
+        avatar_url: user?.user_metadata.avatar_url || null,
+      },
+      imageFile: selectedFile,
+    });
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
