@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase-client";
 import type { Post } from "./PostList";
 import { LikeButton } from "./LikeButton";
+import { CommentSection } from "./CommentSection";
 
 interface Props {
   postId: number;
@@ -38,7 +39,7 @@ export const PostDetail = ({ postId }: Props) => {
       <img
         src={data?.image_url}
         alt={data?.title}
-        className="mt-4 rounded object-cover w-full h-128"
+        className="mt-4 rounded object-cover w-full h-64"
       />
       <p className="text-gray-400">{data?.content}</p>
       <p className="text-gray-500 text-sm">
@@ -46,6 +47,7 @@ export const PostDetail = ({ postId }: Props) => {
       </p>
 
       <LikeButton postId={postId}/>
+      <CommentSection postId={postId}/>
 
     </div>
   );
